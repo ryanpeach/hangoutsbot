@@ -93,6 +93,15 @@ class HangupsBot(object):
             pass
 
 
+        plugins.tracking.set_bot(self)
+        command.set_tracking(plugins.tracking)
+        command.set_bot(self)
+
+        self.tags = tagging.tags(self)
+        self._handlers = handlers.EventHandler(self)
+        handlers.handler.set_bot(self) # shim for handler decorator
+
+
     def set_locale(self, language_code, reuse=True):
         if not reuse or language_code not in self._locales:
             try:
@@ -518,15 +527,7 @@ class HangupsBot(object):
 
         logger.debug("connected")
 
-        plugins.tracking.set_bot(self)
-        command.set_tracking(plugins.tracking)
-        command.set_bot(self)
-
-        self.tags = tagging.tags(self)
-        self._handlers = handlers.EventHandler(self)
-        handlers.handler.set_bot(self) # shim for handler decorator
-
-        #plugins.load(self, "monkeypatch.otr_support")
+        plugins.load(self, "hangupsbot.monkeypatch.otr_support")
 
         self._user_list = yield from hangups.user.build_user_list(self._client,
                                                                   initial_data)
@@ -538,13 +539,13 @@ class HangupsBot(object):
 
         self.conversations = yield from permamem.initialise_permanent_memory(self)
 
-        # plugins.load(self, "commands.plugincontrol")
-        # plugins.load(self, "commands.basic")
-        # plugins.load(self, "commands.tagging")
-        # plugins.load(self, "commands.permamem")
-        # plugins.load(self, "commands.convid")
-        # plugins.load(self, "commands.loggertochat")
-        # plugins.load_user_plugins(self)
+        plugins.load(self, "hangupsbot.commands.plugincontrol")
+        plugins.load(self, "hangupsbot.commands.basic")
+        plugins.load(self, "hangupsbot.commands.tagging")
+        plugins.load(self, "hangupsbot.commands.permamem")
+        plugins.load(self, "hangupsbot.commands.convid")
+        plugins.load(self, "hangupsbot.commands.loggertochat")
+        plugins.load_user_plugins(self)
 
         self._conv_list.on_event.add_observer(self._on_event)
         self._client.on_state_update.add_observer(self._on_status_changes)

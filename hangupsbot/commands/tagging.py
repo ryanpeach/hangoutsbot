@@ -1,6 +1,6 @@
 import logging, pprint
 
-from commands import command
+from . import command
 
 
 logger = logging.getLogger(__name__)

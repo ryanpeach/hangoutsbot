@@ -1,6 +1,6 @@
 import asyncio, logging, logging.handlers, sys
 
-import plugins
+from .. import plugins
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ def _initialise(bot):
     rootLogger = logging.getLogger()
     for handler in rootLogger.handlers:
         if handler.__class__.__name__ == "ChatMessageLogger":
-            logger.info("ChatMessageLogger already attached") 
+            logger.info("ChatMessageLogger already attached")
             return
 
     chatHandler = ChatMessageLogger(bot)

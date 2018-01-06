@@ -1,9 +1,9 @@
 import logging
 
-import plugins
-import handlers
+from .. import plugins
+from .. import handlers
 
-from commands import command
+from . import command
 
 
 logger = logging.getLogger(__name__)

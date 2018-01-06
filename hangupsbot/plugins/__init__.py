@@ -201,7 +201,7 @@ def retrieve_all_plugins(plugin_path=None, must_start_with=False, allow_undersco
     """
 
     if not plugin_path:
-        plugin_path = os.path.dirname(os.path.realpath(sys.argv[0])) + os.sep + "plugins"
+        plugin_path = os.path.dirname(os.path.realpath(__file__))
 
     plugin_list = []
 
@@ -349,7 +349,7 @@ def load(bot, module_path, module_name=None):
         logger.exception("EXCEPTION during plugin import: {}".format(module_path))
         return
 
-    public_functions = [o for o in getmembers(sys.modules[module_path], isfunction)] + [getmembers(sys.modules["__main__"], isfunction)]
+    public_functions = [o for o in getmembers(sys.modules[module_path], isfunction)]
 
     candidate_commands = []
 

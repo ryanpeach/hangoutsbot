@@ -2,10 +2,10 @@ import logging, shlex
 
 import hangups
 
-import plugins
+from .. import plugins
 
-from utils import simple_parse_to_segments
-from commands import command
+from ..utils import simple_parse_to_segments
+from . import command
 
 
 logger = logging.getLogger(__name__)

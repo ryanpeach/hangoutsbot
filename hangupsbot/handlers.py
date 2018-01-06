@@ -52,7 +52,6 @@ class EventHandler:
         current_plugin = plugins.tracking.current()
         self.pluggables[type].append((function, priority, current_plugin["metadata"]))
         self.pluggables[type].sort(key=lambda tup: tup[1])
-
         plugins.tracking.register_handler(function, type, priority)
 
     def register_reprocessor(self, callable):
@@ -245,7 +244,7 @@ class EventHandler:
                 for function, priority, plugin_metadata in self.pluggables[name]:
                     message = ["{}: {}.{}".format(
                                 name,
-                                plugin_metadata["module.path"],
+                                plugin_metadata["module.path"] if plugin_metadata is not None else None,
                                 function.__name__)]
 
                     try:
