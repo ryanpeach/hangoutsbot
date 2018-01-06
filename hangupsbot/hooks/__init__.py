@@ -1,6 +1,6 @@
 import logging
 
-from utils import class_from_name
+from ..utils import class_from_name
 
 
 logger = logging.getLogger(__name__)

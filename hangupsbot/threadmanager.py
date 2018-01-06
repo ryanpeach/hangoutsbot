@@ -1,6 +1,6 @@
 from threading import Thread
 
-from plugins import tracking
+from .plugins import tracking
 
 
 threads = []

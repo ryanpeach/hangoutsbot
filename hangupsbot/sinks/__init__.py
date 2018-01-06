@@ -3,13 +3,13 @@ import asyncio, functools, logging, os, ssl
 from aiohttp import web
 from threading import Thread
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from utils import class_from_name
+from ..utils import class_from_name
 
-from sinks.base_bot_request_handler import BaseBotRequestHandler, AsyncRequestHandler
+from .base_bot_request_handler import BaseBotRequestHandler, AsyncRequestHandler
 
-import threadmanager
+from .. import threadmanager
 
-from plugins import tracking
+from ..plugins import tracking
 
 
 logger = logging.getLogger(__name__)

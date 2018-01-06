@@ -1,6 +1,6 @@
 import asyncio, logging, time
 
-import plugins
+from .. import plugins
 
 
 logger = logging.getLogger(__name__)

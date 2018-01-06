@@ -3,9 +3,9 @@ more parsers and parser utility functions can be imported here
 """
 import hangups
 
-import parsers.kludgy_html_parser
+from . import kludgy_html_parser
 
-from parsers.kludgy_html_parser import segment_to_html
+from .kludgy_html_parser import segment_to_html
 
 def simple_parse_to_segments(formatted_text):
     """send formatted chat message

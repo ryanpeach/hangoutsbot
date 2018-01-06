@@ -2,9 +2,9 @@ import asyncio, importlib, inspect, logging, os, sys
 
 from inspect import getmembers, isfunction
 
-import handlers
+from .. import handlers
 
-from commands import command
+from ..commands import command
 
 
 logger = logging.getLogger(__name__)
@@ -349,7 +349,7 @@ def load(bot, module_path, module_name=None):
         logger.exception("EXCEPTION during plugin import: {}".format(module_path))
         return
 
-    public_functions = [o for o in getmembers(sys.modules[module_path], isfunction)]
+    public_functions = [o for o in getmembers(sys.modules[module_path], isfunction)] + [getmembers(sys.modules["__main__"], isfunction)]
 
     candidate_commands = []
 
@@ -410,7 +410,7 @@ def load(bot, module_path, module_name=None):
 
     """
     pass 2: register filtered functions
-    tracking.current() and the CommandDispatcher registers might be out of sync if a 
+    tracking.current() and the CommandDispatcher registers might be out of sync if a
     combination of decorators and register_user_command/register_admin_command is used since
     decorators execute immediately upon import
     """

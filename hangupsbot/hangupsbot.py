@@ -5,24 +5,24 @@ import hangups
 
 from hangups.schemas import OffTheRecordStatus
 
-import config
-import handlers
-import version
+from . import config
+from . import handlers
+from . import version
 
-import permamem
-import tagging
+from . import permamem
+from . import tagging
 
-import hooks
-import sinks
-import plugins
+from . import hooks
+from . import sinks
+from . import plugins
 
-from exceptions import HangupsBotExceptions
-from event import (TypingEvent, WatermarkEvent, ConversationEvent)
-from hangups_conversation import (HangupsConversation, FakeConversation)
+from .exceptions import HangupsBotExceptions
+from .event import (TypingEvent, WatermarkEvent, ConversationEvent)
+from .hangups_conversation import (HangupsConversation, FakeConversation)
 
-from commands import command
-from permamem import conversation_memory
-from utils import simple_parse_to_segments, class_from_name
+from .commands import command
+from .permamem import conversation_memory
+from .utils import simple_parse_to_segments, class_from_name
 
 
 gettext.install('hangupsbot', localedir=os.path.join(os.path.dirname(__file__), 'locale'))
@@ -298,7 +298,7 @@ class HangupsBot(object):
                 _cached = self.memory.get_by_path(["user_data", chat_id, "_hangups"])
 
                 hangups_user = hangups.user.User(
-                    UserID, 
+                    UserID,
                     _cached["full_name"],
                     _cached["first_name"],
                     _cached["photo_url"],
@@ -526,7 +526,7 @@ class HangupsBot(object):
         self._handlers = handlers.EventHandler(self)
         handlers.handler.set_bot(self) # shim for handler decorator
 
-        plugins.load(self, "monkeypatch.otr_support")
+        #plugins.load(self, "monkeypatch.otr_support")
 
         self._user_list = yield from hangups.user.build_user_list(self._client,
                                                                   initial_data)
@@ -538,13 +538,13 @@ class HangupsBot(object):
 
         self.conversations = yield from permamem.initialise_permanent_memory(self)
 
-        plugins.load(self, "commands.plugincontrol")
-        plugins.load(self, "commands.basic")
-        plugins.load(self, "commands.tagging")
-        plugins.load(self, "commands.permamem")
-        plugins.load(self, "commands.convid")
-        plugins.load(self, "commands.loggertochat")
-        plugins.load_user_plugins(self)
+        # plugins.load(self, "commands.plugincontrol")
+        # plugins.load(self, "commands.basic")
+        # plugins.load(self, "commands.tagging")
+        # plugins.load(self, "commands.permamem")
+        # plugins.load(self, "commands.convid")
+        # plugins.load(self, "commands.loggertochat")
+        # plugins.load_user_plugins(self)
 
         self._conv_list.on_event.add_observer(self._on_event)
         self._client.on_state_update.add_observer(self._on_status_changes)
@@ -587,7 +587,7 @@ class HangupsBot(object):
 
         event = ConversationEvent(self, conv_event)
 
-        yield from self.conversations.update(self._conv_list.get(conv_event.conversation_id), 
+        yield from self.conversations.update(self._conv_list.get(conv_event.conversation_id),
                                              source="event")
 
         if isinstance(conv_event, hangups.ChatMessageEvent):
@@ -857,7 +857,7 @@ class HangupsBot(object):
 
         return myself
 
-def configure_logging(args):
+def configure_logging(_debug, _log, _config):
     """Configure Logging
 
     If the user specified a logging config file, open it, and
@@ -866,7 +866,7 @@ def configure_logging(args):
     log configuration.
     """
 
-    log_level = 'DEBUG' if args.debug else 'INFO'
+    log_level = 'DEBUG' if _debug else 'INFO'
 
     default_config = {
         'version': 1,
@@ -890,7 +890,7 @@ def configure_logging(args):
                 },
             'file': {
                 'class': 'logging.FileHandler',
-                'filename': args.log,
+                'filename': _log,
                 'level': log_level,
                 'formatter': 'default',
                 }
@@ -923,7 +923,7 @@ def configure_logging(args):
     # logging before bringing anything else up. There is no race internally,
     # if logging() is called before configured, it outputs to stderr, and
     # we will configure it soon enough
-    bootcfg = config.Config(args.config)
+    bootcfg = config.Config(_config)
     if bootcfg.exists(["logging.system"]):
         logging_config = bootcfg["logging.system"]
 
@@ -943,11 +943,50 @@ def configure_logging(args):
     logging.config.dictConfig(logging_config)
 
     logger = logging.getLogger()
-    if args.debug:
+    if _debug:
         logger.setLevel(logging.DEBUG)
 
 
-def main():
+def get_bot(**kwargs):
+    # Build default paths for files.
+    dirs = appdirs.AppDirs('hangupsbot', 'hangupsbot')
+    default_log_path = os.path.join(dirs.user_data_dir, 'hangupsbot.log')
+    default_cookies_path = os.path.join(dirs.user_data_dir, 'cookies.json')
+    default_config_path = os.path.join(dirs.user_data_dir, 'config.json')
+    default_memory_path = os.path.join(dirs.user_data_dir, 'memory.json')
+
+    _debug = kwargs.get("debug",)
+    _log = kwargs.get("log", default_log_path)
+    _cookies = kwargs.get("cookies", default_cookies_path)
+    _memory = kwargs.get("memory", default_memory_path)
+    _config = kwargs.get("config", default_config_path)
+    _retries = kwargs.get("retries", 5)
+
+    # Create all necessary directories.
+    for path in [_log, _cookies, _config, _memory]:
+        directory = os.path.dirname(path)
+        if directory and not os.path.isdir(directory):
+            try:
+                os.makedirs(directory)
+            except OSError as e:
+                sys.exit(_('Failed to create directory: {}').format(e))
+
+    # If there is no config file in user data directory, copy default one there
+    if not os.path.isfile(_config):
+        try:
+            shutil.copy(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), 'config.json')),
+                        _config)
+        except (OSError, IOError) as e:
+            sys.exit(_('Failed to copy default config file: {}').format(e))
+
+    configure_logging(_debug, _log, _config)
+
+    # initialise the bot
+    bot = HangupsBot(_cookies, _config, _retries, _memory)
+    return bot
+
+
+if __name__ == '__main__':
     """Main entry point"""
     # Build default paths for files.
     dirs = appdirs.AppDirs('hangupsbot', 'hangupsbot')
@@ -975,33 +1014,12 @@ def main():
                         help=_('show program\'s version number and exit'))
     args = parser.parse_args()
 
-    
-
-    # Create all necessary directories.
-    for path in [args.log, args.cookies, args.config, args.memory]:
-        directory = os.path.dirname(path)
-        if directory and not os.path.isdir(directory):
-            try:
-                os.makedirs(directory)
-            except OSError as e:
-                sys.exit(_('Failed to create directory: {}').format(e))
-
-    # If there is no config file in user data directory, copy default one there
-    if not os.path.isfile(args.config):
-        try:
-            shutil.copy(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), 'config.json')),
-                        args.config)
-        except (OSError, IOError) as e:
-            sys.exit(_('Failed to copy default config file: {}').format(e))
-
-    configure_logging(args)
-
-    # initialise the bot
-    bot = HangupsBot(args.cookies, args.config, args.retries, args.memory)
+    bot = get_bot(debug=args.debug,
+                  log=args.log,
+                  cookies=args.cookies,
+                  memory=args.memory,
+                  config=args.config,
+                  retries=args.retries)
 
     # start the bot
     bot.run()
-
-
-if __name__ == '__main__':
-    main()

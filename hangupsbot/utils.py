@@ -3,9 +3,9 @@ import importlib, logging, unicodedata
 
 import hangups
 
-from parsers import simple_parse_to_segments, segment_to_html
+from .parsers import simple_parse_to_segments, segment_to_html
 
-from permamem import name_from_hangups_conversation
+from .permamem import name_from_hangups_conversation
 
 
 logger = logging.getLogger(__name__)
