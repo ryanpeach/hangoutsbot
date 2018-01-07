@@ -96,11 +96,9 @@ class HangupsBot(object):
         plugins.tracking.set_bot(self)
         command.set_tracking(plugins.tracking)
         command.set_bot(self)
-
         self.tags = tagging.tags(self)
         self._handlers = handlers.EventHandler(self)
         handlers.handler.set_bot(self) # shim for handler decorator
-
 
     def set_locale(self, language_code, reuse=True):
         if not reuse or language_code not in self._locales:
@@ -171,7 +169,7 @@ class HangupsBot(object):
                     self._client.on_disconnect.add_observer(self._on_disconnect)
 
                     loop.run_until_complete(self._client.connect())
-
+                    print(plugins.tracking.list)
                     logger.info("bot is exiting")
 
                     loop.run_until_complete(plugins.unload_all(self))

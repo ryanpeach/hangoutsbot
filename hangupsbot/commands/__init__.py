@@ -89,7 +89,7 @@ class CommandDispatcher(object):
                 commands_tagged[command] = commands_tagged[command] | tagsets
 
         all_commands = set(self.commands)
-
+        print(all_commands)
         admin_commands = set()
         user_commands = set()
 
@@ -186,7 +186,7 @@ class CommandDispatcher(object):
                 "<b><pre>{0}</pre></b> <pre>{1}</pre>: <em><pre>{2}</pre></em>".format(
                     func.__name__, type(e).__name__, str(e)) )
 
-    def register(self, *args, admin=False, tags=None, final=False, name=None):
+    def register(self, *args, admin=False, tags=None, final=False, name=None, plugin=True):
         """Decorator for registering command"""
 
         def wrapper(func):
@@ -203,7 +203,9 @@ class CommandDispatcher(object):
                 # just register and return the same function
                 plugins.tracking.register_command( "admin" if admin else "user",
                                                    [func_name],
-                                                   tags=tags )
+                                                   tags=tags,
+                                                   func=func,
+                                                   plugin=plugin)
 
             return func
 

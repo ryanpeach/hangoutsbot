@@ -194,6 +194,7 @@ class EventHandler:
         commands = command.get_available_commands(self.bot, event.user.id_.chat_id, event.conv_id)
 
         supplied_command = line_args[1].lower()
+        print(commands)
         if supplied_command in commands["user"]:
             pass
         elif supplied_command in commands["admin"]:

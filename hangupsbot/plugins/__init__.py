@@ -68,8 +68,10 @@ class tracker:
                         command.register_tags(command_name, type_tags[type])
                         break
 
-    def register_command(self, type, command_names, tags=None):
+    def register_command(self, type, command_names, tags=None, func=None, plugin=True):
         """call during plugin init to register commands"""
+        if not plugin:
+            load_functions(self.bot, "__main__", "", [(command_names, func)], plugin=False)
         self._current["commands"][type].extend(command_names)
         self._current["commands"][type] = list(set(self._current["commands"][type]))
 
@@ -101,9 +103,12 @@ class tracker:
             recursive_tag_format( command_tags,
                                   command=command_name,
                                   type=type,
-                                  plugin=self._current["metadata"]["module"] )
-
+                                  plugin=self._current["metadata"]["module"])
             self.register_tags(type, command_name, command_tags)
+
+
+        #     tracking.end()
+        #     print(tracking.list)
 
     def register_tags(self, type, command_name, tags):
         if command_name not in self._current["commands"]["tagged"]:
@@ -334,8 +339,6 @@ def load(bot, module_path, module_name=None):
     if module_path in tracking.list:
         raise RuntimeError("{} already loaded".format(module_path))
 
-    tracking.start({ "module": module_name, "module.path": module_path })
-
     try:
         if module_path in sys.modules:
             importlib.reload(sys.modules[module_path])
@@ -350,7 +353,10 @@ def load(bot, module_path, module_name=None):
         return
 
     public_functions = [o for o in getmembers(sys.modules[module_path], isfunction)]
+    load_functions(bot, module_path, module_name, public_functions)
 
+def load_functions(bot, module_path, module_name, public_functions, plugin=True):
+    tracking.start({ "module": module_name, "module.path": module_path })
     candidate_commands = []
 
     """pass 1: run optional callable: _initialise, _initialize
